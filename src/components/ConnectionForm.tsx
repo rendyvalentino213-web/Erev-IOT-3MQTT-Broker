@@ -17,7 +17,7 @@ const PRESETS = [
       port: 443, // WSS
       protocol: 'wss',
       path: '/',
-      clientId: 'rendyvalentino213@gmail.com_web',
+      clientId: 'rendyvalentino213@gmail.com',
       username: 'rendyvalentino123',
       password: 'GDm1UEZR-gTtu8Hl1'
     }
@@ -76,175 +76,203 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
   };
 
   return (
-    <div className="max-w-md mx-auto mt-6 mb-6 sm:mt-10 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col max-h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-black px-6 py-6 text-center relative shrink-0">
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F55E5E] rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+    <div className="max-w-5xl w-full mx-auto my-8 sm:my-12 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 flex flex-col md:flex-row min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+      
+      {/* Left Sidebar */}
+      <div className="md:w-5/12 bg-black px-8 py-10 flex flex-col justify-between relative overflow-hidden shrink-0">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#F55E5E] rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
         
-        <div className="relative flex justify-center mb-4">
-          <div className="bg-[#F55E5E] p-3 rounded-2xl shadow-lg shadow-[#F55E5E]/30">
+        <div className="relative z-10">
+          <div className="inline-flex bg-[#F55E5E] p-4 rounded-xl shadow-lg shadow-[#F55E5E]/30 mb-6">
             <Wifi className="w-8 h-8 text-white" />
           </div>
+          <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Login Broker</h2>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Hubungkan ke broker MQTT Anda untuk memulai kontrol perangkat IoT Erev secara realtime.
+          </p>
         </div>
-        <h2 className="text-xl font-bold text-white relative">Login / Hubungkan Broker</h2>
-        <p className="text-slate-400 text-sm mt-2 relative">Pilih broker MQTT untuk memulai kontrol IoT Anda.</p>
+
+        <div className="relative z-10 mt-12 bg-white/5 border-l-2 border-[#F55E5E] p-4 rounded-r-lg">
+          <h3 className="font-semibold text-slate-200 text-xs mb-2">Panduan Wajib MyQttHub 👇</h3>
+          <ul className="list-disc pl-4 text-[11px] text-slate-400 space-y-1.5 marker:text-[#F55E5E]">
+            <li><b>Client ID harus terdaftar</b> di panel MyQttHub.</li>
+            <li>Karena Anda sudah mematikan ESP32, otomatis tidak ada bentrok ID. Gunakan ID asli Anda <b><code className="text-white bg-black/50 px-1 rounded">rendyvalentino213@gmail.com</code></b>.</li>
+            <li>Port WebSockets broker MyQttHub wajib <b>443</b>.</li>
+            <li>Jika masih gagal, masuk ke web myqtthub.com dan tekan tombol Hubungkan di tab perangkat.</li>
+          </ul>
+        </div>
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 shrink-0 mx-6 mt-6 rounded-r-lg shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-        <h3 className="font-bold text-blue-800 text-sm mb-2">Panduan Wajib untuk MyQttHub:</h3>
-        <ul className="list-decimal pl-4 text-xs text-blue-900 space-y-1.5 marker:text-blue-500">
-          <li>Buka dashboard panel MyQttHub Anda.</li>
-          <li>MyQttHub <b>TIDAK</b> mengizinkan dua koneksi bersamaan dengan akun/ClientID yang sama (ESP32 dan Web akan saling menendang).</li>
-          <li>Pilih menu <b>Devices</b> &gt; <b>Create new device</b>.</li>
-          <li>Buat Device khusus untuk web ini (misal: ClientID = <code className="bg-blue-100 px-1 rounded">rendyvalentino213_web</code>).</li>
-          <li>Gunakan Username & Password dari Device <b>baru</b> tersebut di form bawah ini.</li>
-          <li>Biarkan Port: <b>443</b> untuk koneksi WebSockets.</li>
-        </ul>
-      </div>
+      {/* Right Form Area */}
+      <div className="md:w-7/12 p-8 sm:p-12 flex flex-col justify-center bg-white relative">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-4 text-sm text-[#F55E5E] bg-[#F55E5E]/10 border border-[#F55E5E]/20 rounded-xl flex items-start gap-3 animate-in fade-in">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold mb-1">Koneksi Gagal</p>
+                <p className="opacity-90 leading-relaxed">{error}</p>
+              </div>
+            </div>
+          )}
 
-      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 relative mt-0 overflow-y-auto">
-        {error && (
-          <div className="p-4 text-sm text-[#F55E5E] bg-[#F55E5E]/10 border border-[#F55E5E]/20 rounded-xl flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold mb-1">Gagal Menghubungkan</p>
-              <p className="opacity-90 leading-relaxed">{error}</p>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Pilih Preset Broker</label>
+            <div className="relative">
+              <select
+                value={selectedPreset}
+                onChange={handlePresetChange}
+                className="w-full appearance-none rounded-xl border border-slate-300 py-3 pl-4 pr-10 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent font-medium bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                {PRESETS.map((preset) => (
+                  <option key={preset.name} value={preset.name}>
+                    {preset.name}
+                  </option>
+                ))}
+                <option value="custom">Custom (Atur Sendiri)</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-5 w-5 text-slate-400" />
+              </div>
             </div>
           </div>
-        )}
 
-        <div>
-           <label className="block text-sm font-medium text-slate-700 mb-1.5">Pilih Preset Broker</label>
-           <div className="relative">
-             <select
-               value={selectedPreset}
-               onChange={handlePresetChange}
-               className="w-full appearance-none rounded-xl border border-slate-300 py-3 pl-4 pr-10 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent font-medium bg-slate-50 hover:bg-slate-100/50 transition-colors cursor-pointer"
-             >
-               {PRESETS.map((preset) => (
-                 <option key={preset.name} value={preset.name}>
-                   {preset.name}
-                 </option>
-               ))}
-               <option value="custom">Custom (Atur Sendiri)</option>
-             </select>
-             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-               <ChevronDown className="h-5 w-5 text-slate-400" />
-             </div>
-           </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-500 mb-1">Host/Broker address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Server className="h-3.5 w-3.5 text-slate-400" />
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+              <div className="sm:col-span-3">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Host/Broker address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Server className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    name="host"
+                    required
+                    value={config.host}
+                    onChange={handleChange}
+                    className="pl-10 w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
+                  />
                 </div>
+              </div>
+              <div className="sm:col-span-1">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Port <span className="text-[10px] text-slate-400 font-normal">(WSS)</span></label>
                 <input
-                  type="text"
-                  name="host"
+                  type="number"
+                  name="port"
                   required
-                  value={config.host}
+                  value={config.port}
                   onChange={handleChange}
-                  className="pl-8 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Port (WSS)</label>
-              <input
-                type="number"
-                name="port"
-                required
-                value={config.port}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Client ID (Bebas asal unik)</label>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Client ID</label>
               <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <KeyRound className="h-3.5 w-3.5 text-slate-400" />
+                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <KeyRound className="h-4 w-4 text-slate-400" />
                   </div>
                 <input
                   type="text"
                   name="clientId"
                   value={config.clientId}
                   onChange={handleChange}
-                  className="pl-8 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
+                  className="pl-10 w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
                 />
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Username (Opsional)</label>
-              <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-3.5 w-3.5 text-slate-400" />
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Protocol</label>
+                <select
+                  name="protocol"
+                  value={config.protocol}
+                  onChange={handleChange}
+                  className="w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent bg-white transition-all cursor-pointer"
+                >
+                  <option value="ws">ws://</option>
+                  <option value="wss">wss:// (Secure)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Path</label>
                 <input
                   type="text"
-                  name="username"
-                  value={config.username}
+                  name="path"
+                  value={config.path}
                   onChange={handleChange}
-                  className="pl-8 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Password (Opsional)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Key className="h-3.5 w-3.5 text-slate-400" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Username</label>
+                <div className="relative">
+                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <User className="h-4 w-4 text-slate-400" />
+                    </div>
+                  <input
+                    type="text"
+                    name="username"
+                    value={config.username}
+                    onChange={handleChange}
+                    className="pl-10 w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Key className="h-4 w-4 text-slate-400" />
+                    </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={config.password}
+                    onChange={handleChange}
+                    className="pl-10 pr-10 w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-[#F55E5E]"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={config.password}
-                  onChange={handleChange}
-                  className="pl-8 pr-10 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
-                />
-                <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="p-1 text-slate-400 hover:text-slate-600 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-[#F55E5E]"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={isConnecting}
-            className="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-[#F55E5E]/20 text-sm font-semibold text-white bg-[#F55E5E] hover:bg-[#E04949] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F55E5E] disabled:opacity-70 transition-all hover:-translate-y-0.5 active:translate-y-0"
-          >
-            {isConnecting ? (
-              <div className="flex items-center gap-2">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Menghubungkan...
-              </div>
-            ) : 'Hubungkan Sekarang'}
-          </button>
-        </div>
-      </form>
+          <div className="pt-4 mt-2 border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isConnecting}
+              className="w-full flex justify-center py-4 px-4 rounded-xl shadow-[0_8px_20px_-6px_rgba(245,94,94,0.4)] text-base font-bold text-white bg-[#F55E5E] hover:bg-[#E04949] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F55E5E] disabled:opacity-70 transition-all hover:-translate-y-0.5 active:translate-y-0"
+            >
+              {isConnecting ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Menghubungkan...
+                </div>
+              ) : 'Hubungkan Sekarang'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
