@@ -18,9 +18,9 @@ export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
     port: 443,
-    clientId: 'rendy_web',
-    username: 'rendyvalentino123', // Pastikan ini username domain Anda
-    password: '', // Isi dengan password dari device rendy_web
+    clientId: 'esp32 test',
+    username: 'rendy',
+    password: '',
     path: '/',
     protocol: 'wss',
   });
@@ -61,10 +61,18 @@ export default function MqttApp() {
     }
 
     const { host, port, clientId, username, password, path, protocol } = newConfig;
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && protocol === 'ws') {
+      setIsConnecting(false);
+      setConnectionError("Koneksi tidak aman (ws://) diblokir oleh browser karena website ini menggunakan HTTPS. Harap gunakan protokol wss:// (Secure) dan pastikan broker Anda mendukung koneksi aman di port tersebut.");
+      return;
+    }
+
+    const cleanPath = path && path.trim() !== '' ? (path.startsWith('/') ? path : `/${path}`) : '';
     const url = `${protocol}://${host}:${port}${cleanPath}`;
 
     const options: mqtt.IClientOptions = {
+      protocol: protocol === 'wss' ? 'wss' : 'ws',
       clientId,
       username,
       password,
@@ -73,7 +81,7 @@ export default function MqttApp() {
       connectTimeout: 10 * 1000,
     };
 
-    console.log('Connecting to', url, options);
+    console.log('Connecting to', url, 'with options:', { ...options, password: '***' });
 
     try {
       const mqttClient = mqtt.connect(url, options);

@@ -17,8 +17,8 @@ const PRESETS = [
       port: 443, // WSS
       protocol: 'wss',
       path: '/',
-      clientId: 'rendy_web',
-      username: 'rendyvalentino123',
+      clientId: 'esp32 test',
+      username: 'rendy',
       password: ''
     }
   },
@@ -96,9 +96,9 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
         <div className="relative z-10 mt-12 bg-white/5 border-l-2 border-[#F55E5E] p-4 rounded-r-lg">
           <h3 className="font-semibold text-slate-200 text-xs mb-2">Panduan Wajib MyQttHub 👇</h3>
           <ul className="list-disc pl-4 text-[11px] text-slate-400 space-y-1.5 marker:text-[#F55E5E]">
-            <li><b>Client ID</b> isi dengan: <code className="text-white bg-black/50 px-1 rounded">rendy_web</code></li>
-            <li><b>Username</b> isi dengan username akun/domain Anda: <code className="text-white bg-black/50 px-1 rounded">rendyvalentino123</code></li>
-            <li><b>Password</b>: Masukkan password dari device <code className="text-white bg-black/50 px-1 rounded">rendy_web</code> yang baru saja Anda buat di panel (bukan password ESP).</li>
+            <li><b>Client ID</b> isi dengan: <code className="text-white bg-black/50 px-1 rounded">esp32 test</code></li>
+            <li><b>Username</b> isi dengan username akun/domain Anda: <code className="text-white bg-black/50 px-1 rounded">rendy</code></li>
+            <li><b>Password</b>: Masukkan password dari device panel.</li>
             <li>Port WebSockets broker MyQttHub wajib <b>443</b> dan Path <b>/</b></li>
           </ul>
         </div>
@@ -157,15 +157,27 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
                 </div>
               </div>
               <div className="sm:col-span-1">
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">Port <span className="text-[10px] text-slate-400 font-normal">(WSS)</span></label>
-                <input
-                  type="number"
-                  name="port"
-                  required
-                  value={config.port}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all"
-                />
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Port <span className="text-[10px] text-slate-400 font-normal">(WSS/WS)</span></label>
+                <div className="relative">
+                  <select
+                    name="port"
+                    required
+                    value={config.port}
+                    onChange={handleChange}
+                    className="w-full appearance-none rounded-xl border border-slate-200 py-3 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent transition-all cursor-pointer bg-white"
+                  >
+                    <option value={443}>443 (WSS)</option>
+                    <option value={8083}>8083 (WSS)</option>
+                    <option value={8084}>8084 (WSS)</option>
+                    <option value={8884}>8884 (WSS)</option>
+                    <option value={8080}>8080 (WS)</option>
+                    <option value={8081}>8081 (WS)</option>
+                    <option value={1883}>1883 (TCP - Hindari)</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -194,8 +206,8 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
                   onChange={handleChange}
                   className="w-full rounded-xl border border-slate-200 py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent bg-white transition-all cursor-pointer"
                 >
-                  <option value="ws">ws://</option>
                   <option value="wss">wss:// (Secure)</option>
+                  <option value="ws">ws:// (Akan diblokir browser HTTPS)</option>
                 </select>
               </div>
               <div>
