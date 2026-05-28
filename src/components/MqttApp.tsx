@@ -18,10 +18,10 @@ export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
     port: 443,
-    clientId: 'rendyvalentino213_web',
-    username: 'rendyvalentino123',
-    password: 'GDm1UEZR-gTtu8Hl1',
-    path: '',
+    clientId: 'rendy_web',
+    username: 'rendyvalentino123', // Pastikan ini username domain Anda
+    password: '', // Isi dengan password dari device rendy_web
+    path: '/',
     protocol: 'wss',
   });
 

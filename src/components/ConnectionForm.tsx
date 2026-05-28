@@ -17,9 +17,9 @@ const PRESETS = [
       port: 443, // WSS
       protocol: 'wss',
       path: '/',
-      clientId: 'rendyvalentino213@gmail.com',
+      clientId: 'rendy_web',
       username: 'rendyvalentino123',
-      password: 'GDm1UEZR-gTtu8Hl1'
+      password: ''
     }
   },
   {
@@ -96,10 +96,10 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
         <div className="relative z-10 mt-12 bg-white/5 border-l-2 border-[#F55E5E] p-4 rounded-r-lg">
           <h3 className="font-semibold text-slate-200 text-xs mb-2">Panduan Wajib MyQttHub 👇</h3>
           <ul className="list-disc pl-4 text-[11px] text-slate-400 space-y-1.5 marker:text-[#F55E5E]">
-            <li><b>Client ID harus terdaftar</b> di panel MyQttHub.</li>
-            <li>Karena Anda sudah mematikan ESP32, otomatis tidak ada bentrok ID. Gunakan ID asli Anda <b><code className="text-white bg-black/50 px-1 rounded">rendyvalentino213@gmail.com</code></b>.</li>
-            <li>Port WebSockets broker MyQttHub wajib <b>443</b>.</li>
-            <li>Jika masih gagal, masuk ke web myqtthub.com dan tekan tombol Hubungkan di tab perangkat.</li>
+            <li><b>Client ID</b> isi dengan: <code className="text-white bg-black/50 px-1 rounded">rendy_web</code></li>
+            <li><b>Username</b> isi dengan username akun/domain Anda: <code className="text-white bg-black/50 px-1 rounded">rendyvalentino123</code></li>
+            <li><b>Password</b>: Masukkan password dari device <code className="text-white bg-black/50 px-1 rounded">rendy_web</code> yang baru saja Anda buat di panel (bukan password ESP).</li>
+            <li>Port WebSockets broker MyQttHub wajib <b>443</b> dan Path <b>/</b></li>
           </ul>
         </div>
       </div>
