@@ -17,7 +17,7 @@ export interface MqttConfig {
 export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
-    port: 8083, // WebSockets port for myQTThub usually
+    port: 8883, // WebSockets port requested by user
     clientId: 'webclient_' + Math.random().toString(16).substring(2, 8),
     username: 'rendy',
     password: 'password123',
@@ -144,7 +144,7 @@ export default function MqttApp() {
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">IoT Control Hub</h1>
+            <h1 className="text-xl font-bold tracking-tight">Erev IoT MQTT Broker</h1>
           </div>
         </div>
         <div>

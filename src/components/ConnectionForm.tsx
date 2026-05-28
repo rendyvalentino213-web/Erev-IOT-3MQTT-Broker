@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MqttConfig } from './MqttApp';
-import { Server, User, Key, KeyRound, Wifi, ChevronDown, Settings2 } from 'lucide-react';
+import { Server, User, Key, KeyRound, Wifi, ChevronDown, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 interface ConnectionFormProps {
   initialConfig: MqttConfig;
@@ -14,7 +14,7 @@ const PRESETS = [
     name: 'MyQttHub',
     config: {
       host: 'node02.myqtthub.com',
-      port: 8083,
+      port: 8883,
       protocol: 'wss',
       path: '/',
       clientId: 'esp32test_web',
@@ -51,7 +51,7 @@ const PRESETS = [
 export default function ConnectionForm({ initialConfig, onConnect, isConnecting, error }: ConnectionFormProps) {
   const [config, setConfig] = useState<MqttConfig>(initialConfig);
   const [selectedPreset, setSelectedPreset] = useState<string>('MyQttHub');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +92,12 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
 
       <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 relative">
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
-            {error}
+          <div className="p-4 text-sm text-[#F55E5E] bg-[#F55E5E]/10 border border-[#F55E5E]/20 rounded-xl flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold mb-1">Gagal Menghubungkan</p>
+              <p className="opacity-90 leading-relaxed">{error}</p>
+            </div>
           </div>
         )}
 
@@ -118,23 +122,7 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
            </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-slate-200"></div>
-          </div>
-          <div className="relative flex justify-center">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-xs font-medium text-slate-500 hover:text-slate-700 border border-slate-200 transition-colors"
-            >
-              <Settings2 className="w-3.5 h-3.5" />
-              {showAdvanced ? 'Sembunyikan Detail' : 'Lihat Detail'}
-            </button>
-          </div>
-        </div>
-
-        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${showAdvanced ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+        <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
               <label className="block text-xs font-medium text-slate-500 mb-1">Host/Broker address</label>
@@ -217,12 +205,21 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
                     <Key className="h-3.5 w-3.5 text-slate-400" />
                   </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={config.password}
                   onChange={handleChange}
-                  className="pl-8 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
+                  className="pl-8 pr-10 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
                 />
+                <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-1 text-slate-400 hover:text-slate-600 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-[#F55E5E]"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
