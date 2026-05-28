@@ -14,10 +14,10 @@ const PRESETS = [
     name: 'MyQttHub',
     config: {
       host: 'node02.myqtthub.com',
-      port: 8883, // Web broker umumnya menggunakan 443 (wss) tapi diset 8883 sesuai request
+      port: 443, // WSS
       protocol: 'wss',
       path: '/',
-      clientId: 'rendyvalentino213@gmail.com',
+      clientId: 'rendyvalentino213@gmail.com_web',
       username: 'rendyvalentino123',
       password: 'GDm1UEZR-gTtu8Hl1'
     }
@@ -76,8 +76,8 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 sm:mt-16 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-black px-6 py-8 text-center relative overflow-hidden">
+    <div className="max-w-md mx-auto mt-6 mb-6 sm:mt-10 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col max-h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-black px-6 py-6 text-center relative shrink-0">
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F55E5E] rounded-full blur-3xl opacity-20"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
         
@@ -90,16 +90,25 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
         <p className="text-slate-400 text-sm mt-2 relative">Pilih broker MQTT untuk memulai kontrol IoT Anda.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 relative">
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 shrink-0 mx-6 mt-6 rounded-r-lg shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
+        <h3 className="font-bold text-blue-800 text-sm mb-2">Panduan Wajib untuk MyQttHub:</h3>
+        <ul className="list-decimal pl-4 text-xs text-blue-900 space-y-1.5 marker:text-blue-500">
+          <li>Buka dashboard panel MyQttHub Anda.</li>
+          <li>MyQttHub <b>TIDAK</b> mengizinkan dua koneksi bersamaan dengan akun/ClientID yang sama (ESP32 dan Web akan saling menendang).</li>
+          <li>Pilih menu <b>Devices</b> &gt; <b>Create new device</b>.</li>
+          <li>Buat Device khusus untuk web ini (misal: ClientID = <code className="bg-blue-100 px-1 rounded">rendyvalentino213_web</code>).</li>
+          <li>Gunakan Username & Password dari Device <b>baru</b> tersebut di form bawah ini.</li>
+          <li>Biarkan Port: <b>443</b> untuk koneksi WebSockets.</li>
+        </ul>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 relative mt-0 overflow-y-auto">
         {error && (
           <div className="p-4 text-sm text-[#F55E5E] bg-[#F55E5E]/10 border border-[#F55E5E]/20 rounded-xl flex items-start gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold mb-1">Gagal Menghubungkan</p>
               <p className="opacity-90 leading-relaxed">{error}</p>
-              <p className="opacity-90 leading-relaxed mt-2 text-xs">
-                *Tips: Port 8883 biasanya khusus untuk TCP/Hardware (ESP32). Untuk aplikasi web (browser), WebSockets umumnya menggunakan port <strong>443</strong> atau port dikosongkan. Coba ganti port ke 443. Client ID juga harus unik (tidak boleh sama persis dengan yang dipakai di ESP32 saat bersamaan).
-              </p>
             </div>
           </div>
         )}
@@ -156,9 +165,9 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Client ID</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Client ID (Bebas asal unik)</label>
               <div className="relative">
                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <KeyRound className="h-3.5 w-3.5 text-slate-400" />
@@ -171,16 +180,6 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
                   className="pl-8 w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Path</label>
-              <input
-                type="text"
-                name="path"
-                value={config.path}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] focus:border-transparent"
-              />
             </div>
           </div>
 

@@ -17,11 +17,11 @@ export interface MqttConfig {
 export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
-    port: 8883,
-    clientId: 'rendyvalentino213@gmail.com',
+    port: 443,
+    clientId: 'rendyvalentino213_web',
     username: 'rendyvalentino123',
     password: 'GDm1UEZR-gTtu8Hl1',
-    path: '/',
+    path: '',
     protocol: 'wss',
   });
 
@@ -61,7 +61,8 @@ export default function MqttApp() {
     }
 
     const { host, port, clientId, username, password, path, protocol } = newConfig;
-    const url = `${protocol}://${host}:${port}${path}`;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const url = `${protocol}://${host}:${port}${cleanPath}`;
 
     const options: mqtt.IClientOptions = {
       clientId,
@@ -108,13 +109,13 @@ export default function MqttApp() {
         console.error('MQTT Connection Error:', err);
         setConnectionError(`Connection Error: ${err.message}`);
         setIsConnecting(false);
-        mqttClient.end();
       });
 
       mqttClient.on('close', () => {
         console.log('MQTT Connection closed');
         setIsConnected(false);
         setIsConnecting(false);
+        setConnectionError(prev => prev ? prev : 'Koneksi ditutup oleh broker. (Tips: Pastikan Port adalah port WebSocket, misalnya 443 atau 8083. Jika Anda memakai port 8883, itu biasanya TCP khusus hardware, jadi Web/Browser akan ditolak). Pastikan juga Client ID unik!');
       });
 
     } catch (err: any) {
