@@ -18,8 +18,8 @@ export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
     port: 443,
-    clientId: 'esp32 test',
-    username: 'rendy',
+    clientId: 'webrendy',
+    username: 'webrendyy123',
     password: '',
     path: '/',
     protocol: 'wss',
@@ -75,7 +75,7 @@ export default function MqttApp() {
       protocol: protocol === 'wss' ? 'wss' : 'ws',
       clientId,
       username,
-      password,
+      ...(password ? { password } : {}),
       clean: true,
       reconnectPeriod: 5000,
       connectTimeout: 10 * 1000,
@@ -123,7 +123,7 @@ export default function MqttApp() {
         console.log('MQTT Connection closed');
         setIsConnected(false);
         setIsConnecting(false);
-        setConnectionError(prev => prev ? prev : 'Koneksi ditutup oleh broker. (Tips: Pastikan Port adalah port WebSocket, misalnya 443 atau 8083. Jika Anda memakai port 8883, itu biasanya TCP khusus hardware, jadi Web/Browser akan ditolak). Pastikan juga Client ID unik!');
+        setConnectionError(prev => prev ? prev : 'Koneksi ditutup oleh broker. 1) Pastikan ESP32 Anda dimatikan (karena Client ID MyQttHub tidak boleh ganda). 2) Pastikan Port 443 (WSS) 3) Pastikan username/password benar.');
       });
 
     } catch (err: any) {

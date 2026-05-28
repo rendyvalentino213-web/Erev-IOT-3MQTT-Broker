@@ -17,8 +17,8 @@ const PRESETS = [
       port: 443, // WSS
       protocol: 'wss',
       path: '/',
-      clientId: 'esp32 test',
-      username: 'rendy',
+      clientId: 'webrendy',
+      username: 'webrendyy123',
       password: ''
     }
   },
@@ -96,10 +96,10 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
         <div className="relative z-10 mt-12 bg-white/5 border-l-2 border-[#F55E5E] p-4 rounded-r-lg">
           <h3 className="font-semibold text-slate-200 text-xs mb-2">Panduan Wajib MyQttHub 👇</h3>
           <ul className="list-disc pl-4 text-[11px] text-slate-400 space-y-1.5 marker:text-[#F55E5E]">
-            <li><b>Client ID</b> isi dengan: <code className="text-white bg-black/50 px-1 rounded">esp32 test</code></li>
-            <li><b>Username</b> isi dengan username akun/domain Anda: <code className="text-white bg-black/50 px-1 rounded">rendy</code></li>
-            <li><b>Password</b>: Masukkan password dari device panel.</li>
-            <li>Port WebSockets broker MyQttHub wajib <b>443</b> dan Path <b>/</b></li>
+            <li><b>Client ID</b> isi dengan: <code className="text-white bg-black/50 px-1 rounded">webrendy</code> (Pastikan perangkat ESP32 sedang dimatikan agar tidak bentrok ID, atau buat device baru di panel khusus web).</li>
+            <li><b>Username</b> isi dengan username akun/domain Anda: <code className="text-white bg-black/50 px-1 rounded">webrendyy123</code></li>
+            <li><b>Password</b> biarkan kosong jika Anda tidak menggunakan password di panel, namun jika diset password masukkan sesuai di panel.</li>
+            <li>Port WebSockets broker MyQttHub wajib <b>443</b> (WSS).</li>
           </ul>
         </div>
       </div>
