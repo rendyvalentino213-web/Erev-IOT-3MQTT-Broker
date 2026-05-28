@@ -17,10 +17,10 @@ export interface MqttConfig {
 export default function MqttApp() {
   const [config, setConfig] = useState<MqttConfig>({
     host: 'node02.myqtthub.com',
-    port: 8883, // WebSockets port requested by user
-    clientId: 'webclient_' + Math.random().toString(16).substring(2, 8),
-    username: 'rendy',
-    password: 'password123',
+    port: 8883,
+    clientId: 'rendyvalentino213@gmail.com',
+    username: 'rendyvalentino123',
+    password: 'GDm1UEZR-gTtu8Hl1',
     path: '/',
     protocol: 'wss',
   });

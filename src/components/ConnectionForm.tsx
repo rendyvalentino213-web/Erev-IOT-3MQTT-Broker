@@ -14,12 +14,12 @@ const PRESETS = [
     name: 'MyQttHub',
     config: {
       host: 'node02.myqtthub.com',
-      port: 8883,
+      port: 8883, // Web broker umumnya menggunakan 443 (wss) tapi diset 8883 sesuai request
       protocol: 'wss',
       path: '/',
-      clientId: 'esp32test_web',
-      username: 'rendy',
-      password: 'password123'
+      clientId: 'rendyvalentino213@gmail.com',
+      username: 'rendyvalentino123',
+      password: 'GDm1UEZR-gTtu8Hl1'
     }
   },
   {
@@ -97,6 +97,9 @@ export default function ConnectionForm({ initialConfig, onConnect, isConnecting,
             <div>
               <p className="font-semibold mb-1">Gagal Menghubungkan</p>
               <p className="opacity-90 leading-relaxed">{error}</p>
+              <p className="opacity-90 leading-relaxed mt-2 text-xs">
+                *Tips: Port 8883 biasanya khusus untuk TCP/Hardware (ESP32). Untuk aplikasi web (browser), WebSockets umumnya menggunakan port <strong>443</strong> atau port dikosongkan. Coba ganti port ke 443. Client ID juga harus unik (tidak boleh sama persis dengan yang dipakai di ESP32 saat bersamaan).
+              </p>
             </div>
           </div>
         )}
