@@ -42,7 +42,8 @@ export default function MqttApp() {
   const [client, setClient] = useState<MqttClient | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isForceDisconnected, setIsForceDisconnected] = useState(false);
 
   // Voice Command states
   const [isListening, setIsListening] = useState(false);
@@ -72,6 +73,13 @@ export default function MqttApp() {
   useEffect(() => {
     if (client) {
       client.end(true); // cleanup old client when switching broker
+      setClient(null);
+    }
+
+    if (isForceDisconnected) {
+      setIsConnected(false);
+      setIsConnecting(false);
+      return;
     }
 
     const { host, port, protocol, path, clientId, username, password, name } = activeConfig;
@@ -148,7 +156,7 @@ export default function MqttApp() {
     return () => {
       mqttClient.end();
     };
-  }, [activeConfig]);
+  }, [activeConfig, isForceDisconnected]);
 
   const publishRelay = (relayId: string, state: boolean) => {
     if (client && isConnected) {
@@ -276,19 +284,38 @@ export default function MqttApp() {
             Pengaturan
           </button>
 
+          <button 
+            onClick={() => {
+              if (isConnected || isConnecting) {
+                setIsForceDisconnected(true);
+                addLog('Koneksi diputus oleh pengguna', 'warn');
+              } else {
+                setIsForceDisconnected(false);
+                setActiveConfig({...draftConfig}); // trigger reconnect
+              }
+            }}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors border ${
+              (isConnected || isConnecting) 
+              ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/40 text-red-200' 
+              : 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-200'
+            }`}
+          >
+            {(isConnected || isConnecting) ? 'Putuskan' : 'Hubungkan'}
+          </button>
+
           <div>
             {isConnecting ? (
-              <div className="flex items-center gap-2 text-yellow-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[140px] justify-center">
+              <div className="flex items-center gap-2 text-yellow-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[120px] justify-center">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Wait...
               </div>
             ) : isConnected ? (
-              <div className="flex items-center gap-2 text-emerald-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[140px] justify-center">
+              <div className="flex items-center gap-2 text-emerald-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[120px] justify-center">
                 <Wifi className="w-4 h-4" />
                 Online
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-[#F55E5E] bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[140px] justify-center">
+              <div className="flex items-center gap-2 text-[#F55E5E] bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-[120px] justify-center">
                 <WifiOff className="w-4 h-4" />
                 Offline
               </div>
@@ -327,22 +354,26 @@ export default function MqttApp() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Port & Protocol</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="number" 
-                      value={draftConfig.port}
-                      onChange={(e) => setDraftConfig({...draftConfig, port: Number(e.target.value)})}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E]"
-                    />
-                    <select 
-                      value={draftConfig.protocol}
-                      onChange={(e) => setDraftConfig({...draftConfig, protocol: e.target.value as any})}
-                      className="w-24 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E]"
-                    >
-                      <option value="wss">wss://</option>
-                      <option value="ws">ws://</option>
-                    </select>
-                  </div>
+                  <select
+                    value={`${draftConfig.protocol}:${draftConfig.port}`}
+                    onChange={(e) => {
+                      const [prot, prt] = e.target.value.split(':');
+                      setDraftConfig({...draftConfig, protocol: prot as any, port: Number(prt)});
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F55E5E] bg-white cursor-pointer"
+                  >
+                    <option value="wss:443">wss:// (Secure) - Port 443</option>
+                    <option value="wss:8084">wss:// (Secure) - Port 8084</option>
+                    <option value="ws:80">ws:// (Unsecure) - Port 80</option>
+                    <option value="ws:8080">ws:// (Unsecure) - Port 8080</option>
+                    <option value="ws:8083">ws:// (Unsecure) - Port 8083</option>
+                    <option value="ws:1883">ws:// (TCP Mapping) - Port 1883</option>
+                    {![443, 8084, 80, 8080, 8083, 1883].includes(draftConfig.port) && (
+                      <option value={`${draftConfig.protocol}:${draftConfig.port}`}>
+                        {draftConfig.protocol}:// (Custom) - Port {draftConfig.port}
+                      </option>
+                    )}
+                  </select>
                   <p className="text-[11px] text-slate-500 mt-1 leading-tight">
                     WSS: <b>443</b> / <b>8084</b>. WS: <b>8080</b> / <b>80</b>.<br />
                     <span className="text-red-500 font-medium">Platform Web ini wajib menggunakan WSS (karena HTTPS). MyQttHub secara default mungkin hanya mendukung 'ws://' port 8080.</span>
@@ -420,46 +451,15 @@ export default function MqttApp() {
             relays={relays} 
             onToggleRelay={publishRelay}
             addLog={addLog}
+            voiceText={voiceText}
+            isListening={isListening}
+            speechRecEnabled={speechRecEnabled}
+            onToggleVoiceCommand={() => (window as any).handleVoiceCommand && (window as any).handleVoiceCommand()}
           />
         </div>
         <div className="w-full md:w-80 flex-shrink-0 flex flex-col gap-6">
-           {/* Voice Command Section */}
-           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 relative overflow-hidden animate-in slide-in-from-right-4 duration-300">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/20"></div>
-              <div className="flex flex-col items-center text-center gap-4">
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold text-slate-800 mb-1">Voice Command</h2>
-                  <p className="text-sm text-slate-500 mb-3">
-                    "Nyalakan relay 1" / "Matikan variasi 2"
-                  </p>
-                  <div className="min-h-[40px] flex items-center justify-center">
-                    {voiceText && (
-                      <div className="inline-flex items-center px-4 py-2 rounded-xl bg-slate-100/80 text-slate-800 text-xs font-medium border border-slate-200/50 shadow-sm animate-in zoom-in-95 duration-200">
-                        🗣️ "{voiceText}"
-                      </div>
-                    )}
-                    {!speechRecEnabled && !voiceText && (
-                        <div className="text-red-500 text-xs bg-red-50 p-2 rounded-lg border border-red-100 inline-block">Tidak didukung (Gunakan Chrome)</div>
-                    )}
-                  </div>
-                </div>
-                
-                <button 
-                  disabled={!speechRecEnabled}
-                  onClick={() => (window as any).handleVoiceCommand && (window as any).handleVoiceCommand()}
-                  className={`flex-shrink-0 h-14 w-14 rounded-full flex items-center justify-center transition-all focus:outline-none ${
-                    isListening 
-                    ? 'bg-blue-500 text-white animate-pulse shadow-lg ring-4 ring-blue-500/20 shadow-blue-500/30' 
-                    : 'bg-slate-100 text-slate-600 hover:bg-white hover:text-blue-600 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200'
-                  }`}
-                >
-                  {isListening ? <Mic className="w-6 h-6 animate-bounce" /> : <MicOff className="w-6 h-6" />}
-                </button>
-              </div>
-            </div>
-
            {/* Log Aktifitas */}
-           <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 flex-1 flex flex-col overflow-hidden max-h-[600px] text-slate-300">
+           <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 flex-1 flex flex-col overflow-hidden max-h-[800px] text-slate-300">
              <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
                <h3 className="font-semibold text-slate-100">Log Aktifitas</h3>
                {logs.length > 0 && (
