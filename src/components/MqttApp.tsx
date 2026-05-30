@@ -131,8 +131,8 @@ export default function MqttApp() {
 
     let url = '';
     if (useProxy) {
-      // Connect to the proxy on our own Node.js server, which tunnels to the target broker over TCP
-      url = `${wsProtocol}://${window.location.host}/mqtt-proxy?host=${host}&port=${targetPort}`;
+     // Gunakan domain Backend proxy dari Railway Anda yang baru dideploy
+      url = `erev-iot-3mqtt-broker-production.up.railway.app-proxy?host=${host}&port=${targetPort}`;
     } else {
       let cleanPath = (path && path.trim() !== '') ? (path.startsWith('/') ? path : `/${path}`) : '';
       url = `${protocol}://${host}:${port}${cleanPath}`;
