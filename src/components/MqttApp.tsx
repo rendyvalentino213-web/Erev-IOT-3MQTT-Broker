@@ -168,16 +168,9 @@ export default function MqttApp() {
       setClient(mqttClient);
       addLog(`Berhasil terhubung ke ${name}`, 'success');
 
-      // Subscribe to sensor and control topics
-      mqttClient.subscribe('sensor/suhu');
-      mqttClient.subscribe('sensor/kelembaban');
-      mqttClient.subscribe('kontrol/relay1');
-      mqttClient.subscribe('kontrol/relay2');
-      mqttClient.subscribe('kontrol/relay3');
-      mqttClient.subscribe('kontrol/relay4');
-      mqttClient.subscribe('kontrol/variasi1');
-      mqttClient.subscribe('kontrol/variasi2');
-      mqttClient.subscribe('kontrol/speed');
+      // Subscribe to sensor and control wildcard topics for maximum performance and reliability on Ably and Cedalo
+      mqttClient.subscribe('sensor/+');
+      mqttClient.subscribe('kontrol/+');
     });
 
     mqttClient.on('message', (topic, message) => {
@@ -237,7 +230,7 @@ export default function MqttApp() {
     if (client && isConnected) {
       const topic = `kontrol/${relayId}`;
       const payload = state ? 'ON' : 'OFF';
-      client.publish(topic, payload);
+      client.publish(topic, payload, { qos: 1 });
       
       // Optimistic update
       setRelays(prev => {
@@ -247,7 +240,7 @@ export default function MqttApp() {
         if (relayId === 'variasi1' && state) {
           if (prev.variasi2) {
             next.variasi2 = false;
-            client.publish('kontrol/variasi2', 'OFF');
+            client.publish('kontrol/variasi2', 'OFF', { qos: 1 });
             addLog('Mengirim instruksi OFF ke variasi2', 'info');
           }
         } 
@@ -255,7 +248,7 @@ export default function MqttApp() {
         else if (relayId === 'variasi2' && state) {
           if (prev.variasi1) {
             next.variasi1 = false;
-            client.publish('kontrol/variasi1', 'OFF');
+            client.publish('kontrol/variasi1', 'OFF', { qos: 1 });
             addLog('Mengirim instruksi OFF ke variasi1', 'info');
           }
         }
@@ -276,7 +269,7 @@ export default function MqttApp() {
       if (targetBrokerId === 'cedalo') payload = 'cedalo';
       else if (targetBrokerId === 'ably') payload = 'ably';
 
-      client.publish(topic, payload);
+      client.publish(topic, payload, { qos: 1, retain: true });
       addLog(`Mengirim instruksi ganti broker ke ESP32: "${payload.toUpperCase()}"`, 'success');
     } else {
       addLog("Gagal mengirim komando: Browser belum terhubung ke broker aktif saat ini.", 'error');
@@ -291,7 +284,7 @@ export default function MqttApp() {
 
       if (activeKeys.length > 0) {
         activeKeys.forEach(relayId => {
-          client.publish(`kontrol/${relayId}`, 'OFF');
+          client.publish(`kontrol/${relayId}`, 'OFF', { qos: 1 });
           addLog(`Mengirim instruksi OFF ke ${relayId}`, 'info');
         });
       }
@@ -315,7 +308,7 @@ export default function MqttApp() {
   const handleVariationSpeedChange = (speed: number) => {
     setVariationSpeed(speed);
     if (client && isConnected) {
-      client.publish('kontrol/speed', String(speed));
+      client.publish('kontrol/speed', String(speed), { qos: 1 });
       addLog(`Mengirim instruksi KECEPATAN: ${speed}ms`, 'info');
     }
   };
@@ -578,7 +571,7 @@ export default function MqttApp() {
             else if (draftConfig.id === 'ably') payload = 'ably';
 
             addLog(`Mengalihkan ESP32 ke broker ${draftConfig.name.toUpperCase()} secara otomatis...`, 'info');
-            client.publish('kontrol/broker', payload, { qos: 1 });
+            client.publish('kontrol/broker', payload, { qos: 1, retain: true });
             addLog(`Sinyal beralih "${payload.toUpperCase()}" terkirim ke ESP32`, 'success');
 
             // Wait 500ms then transition active browser configuration
@@ -601,8 +594,20 @@ export default function MqttApp() {
 
   const handleConnectToggle = () => {
     if (isConnected || isConnecting) {
-      setIsForceDisconnected(true);
-      addLog('Koneksi diputus oleh pengguna', 'warn');
+      if (client && isConnected) {
+        addLog('Mengirim sinyal putuskan koneksi ke broker untuk ESP32...', 'info');
+        // Publish 'disconnect' with QoS 1 and Retain so any reconnecting ESP32 gets the message instantly
+        client.publish('kontrol/broker', 'disconnect', { qos: 1, retain: true });
+        
+        // Wait 500ms to allow publish flush before terminating socket
+        setTimeout(() => {
+          setIsForceDisconnected(true);
+          addLog('Koneksi browser diputus.', 'warn');
+        }, 500);
+      } else {
+        setIsForceDisconnected(true);
+        addLog('Koneksi diputus oleh pengguna', 'warn');
+      }
     } else {
       setIsForceDisconnected(false);
       setActiveConfig({...draftConfig}); // trigger reconnect
