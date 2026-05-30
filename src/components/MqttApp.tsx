@@ -21,13 +21,13 @@ const MYQTTHUB_CONFIG: BrokerConfig = {
   id: 'myqtthub',
   name: 'MyQttHub',
   host: 'node02.myqtthub.com',
-  port: 8084,
-  protocol: 'wss',
+  port: 1883,
+  protocol: 'ws',
   path: `/?clientId=webrendy1`,
   clientId: `webrendy1`,
   username: 'rendy13',
   password: '123',
-  connectionMode: 'direct'
+  connectionMode: 'proxy'
 };
 
 const CEDALO_CONFIG: BrokerConfig = {
@@ -47,13 +47,13 @@ const ABLY_CONFIG: BrokerConfig = {
   id: 'ably',
   name: 'Ably',
   host: 'mqtt.ably.io',
-  port: 443,
-  protocol: 'wss',
+  port: 8883,
+  protocol: 'ws',
   path: '/',
   clientId: `rendyweb_ably_${Math.random().toString(16).slice(2, 8)}`,
   username: 'saCuRw.TlY75w',
   password: 'EZffxoslAB9Xy81X0--ZKJ05Nk326crWVGKAaRGLfe8',
-  connectionMode: 'direct'
+  connectionMode: 'proxy'
 };
 
 export interface LogEntry {
@@ -132,7 +132,7 @@ export default function MqttApp() {
     let url = '';
     if (useProxy) {
      // Gunakan domain Backend proxy dari Railway Anda yang baru dideploy
-      url = `erev-iot-3mqtt-broker-production.up.railway.app-proxy?host=${host}&port=${targetPort}`;
+      url = `wss://erev-iot-3mqtt-broker-production.up.railway.app/mqtt-proxy?host=${host}&port=${targetPort}`;
     } else {
       let cleanPath = (path && path.trim() !== '') ? (path.startsWith('/') ? path : `/${path}`) : '';
       url = `${protocol}://${host}:${port}${cleanPath}`;
@@ -495,7 +495,7 @@ export default function MqttApp() {
               const updated = { ...draftConfig, connectionMode: mode };
               if (mode === 'proxy') {
                 updated.protocol = 'ws';
-                updated.port = 1883; // Standard unencrypted TCP port bridged by our WebSocket proxy for all brokers
+                updated.port = draftConfig.id === 'ably' ? 8883 : 1883;
                 updated.path = draftConfig.id === 'myqtthub' ? `/?clientId=${draftConfig.clientId || 'webrendy1'}` : '';
               } else {
                 updated.protocol = 'wss';
