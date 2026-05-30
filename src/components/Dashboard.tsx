@@ -25,7 +25,22 @@ interface DashboardProps {
   onChangeVariationSpeed?: (speed: number) => void;
 }
 
-export default function Dashboard({ suhu, kelembaban, relays, onToggleRelay, onStopAll, addLog, voiceText, isListening, speechRecEnabled, onToggleVoiceCommand, isBrokerVisible = true, brokerSettingsNode, variationSpeed = 200, onChangeVariationSpeed }: DashboardProps) {
+export default function Dashboard({ 
+  suhu, 
+  kelembaban, 
+  relays, 
+  onToggleRelay, 
+  onStopAll, 
+  addLog, 
+  voiceText, 
+  isListening, 
+  speechRecEnabled, 
+  onToggleVoiceCommand, 
+  isBrokerVisible = true, 
+  brokerSettingsNode, 
+  variationSpeed = 200, 
+  onChangeVariationSpeed
+}: DashboardProps) {
   const SensorCard = ({ title, value, unit, icon: Icon, colorClass }: any) => (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex items-center justify-between hover:shadow-md transition-shadow h-full">
       <div className="min-w-0 flex-1">

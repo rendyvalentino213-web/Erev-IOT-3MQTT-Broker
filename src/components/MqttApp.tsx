@@ -102,6 +102,13 @@ export default function MqttApp() {
   });
 
   const [variationSpeed, setVariationSpeed] = useState<number>(200);
+  const [lastSensorTime, setLastSensorTime] = useState<number>(0);
+  const [now, setNow] = useState<number>(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 2000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (isForceDisconnected) {
@@ -110,7 +117,7 @@ export default function MqttApp() {
       return;
     }
 
-    const { host, port, protocol, path, clientId, username, password, name, connectionMode } = activeConfig;
+    const { host, port, protocol, path, clientId, username, password, name, connectionMode, id } = activeConfig;
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     
@@ -171,10 +178,34 @@ export default function MqttApp() {
       // Subscribe to sensor and control wildcard topics for maximum performance and reliability on Ably and Cedalo
       mqttClient.subscribe('sensor/+');
       mqttClient.subscribe('kontrol/+');
+      mqttClient.subscribe('status/+');
+
+      // Clear any stale retained messages for broker control to prevent infinite broker hopping loops
+      mqttClient.publish('kontrol/broker', '', { qos: 1, retain: true });
+
+      // Sync ESP32: publish active broker target key so it immediately connects or switches
+      let targetPayload = '1';
+      if (id === 'cedalo') targetPayload = '2';
+      else if (id === 'ably') targetPayload = '3';
+      
+      setTimeout(() => {
+        if (mqttClient.connected) {
+          mqttClient.publish('kontrol/broker', targetPayload, { qos: 1, retain: false });
+          addLog(`Sinkronisasi aktif: Mengirim sinyal "${targetPayload}" ke ESP32 agar terhubung`, 'info');
+        }
+      }, 300);
     });
 
     mqttClient.on('message', (topic, message) => {
       const payload = message.toString();
+
+      if (topic === 'status/broker') {
+        addLog(`[ESP32 Status]: ESP32 melaporkan terhubung ke > ${payload}`, 'success');
+      }
+
+      if (topic.startsWith('sensor/')) {
+        setLastSensorTime(Date.now());
+      }
 
       if (topic === 'sensor/suhu') {
         const changed = suhu !== payload;
@@ -265,12 +296,17 @@ export default function MqttApp() {
   const publishBrokerCommand = (targetBrokerId: string) => {
     if (client && isConnected) {
       const topic = 'kontrol/broker';
-      let payload = 'myqtt';
-      if (targetBrokerId === 'cedalo') payload = 'cedalo';
-      else if (targetBrokerId === 'ably') payload = 'ably';
+      let payload = '1';
+      if (targetBrokerId === 'cedalo') payload = '2';
+      else if (targetBrokerId === 'ably') payload = '3';
 
-      client.publish(topic, payload, { qos: 1, retain: true });
-      addLog(`Mengirim instruksi ganti broker ke ESP32: "${payload.toUpperCase()}"`, 'success');
+      client.publish(topic, payload, { qos: 1, retain: false }, (err) => {
+        if (!err) {
+          addLog(`Mengirim instruksi ganti broker ke ESP32: "${payload}"`, 'success');
+        } else {
+          addLog(`Gagal mengirim instruksi ganti broker: ${err.message}`, 'error');
+        }
+      });
     } else {
       addLog("Gagal mengirim komando: Browser belum terhubung ke broker aktif saat ini.", 'error');
       alert("Browser belum terhubung ke MQTT Broker. Silakan hubungkan terlebih dahulu untuk mengirim perintah ganti broker!");
@@ -566,19 +602,23 @@ export default function MqttApp() {
         onClick={() => {
           if (isConnected && client && draftConfig.id !== activeConfig.id) {
             // Signal ESP32 first
-            let payload = 'myqtt';
-            if (draftConfig.id === 'cedalo') payload = 'cedalo';
-            else if (draftConfig.id === 'ably') payload = 'ably';
+            let payload = '1';
+            if (draftConfig.id === 'cedalo') payload = '2';
+            else if (draftConfig.id === 'ably') payload = '3';
 
             addLog(`Mengalihkan ESP32 ke broker ${draftConfig.name.toUpperCase()} secara otomatis...`, 'info');
-            client.publish('kontrol/broker', payload, { qos: 1, retain: true });
-            addLog(`Sinyal beralih "${payload.toUpperCase()}" terkirim ke ESP32`, 'success');
-
-            // Wait 500ms then transition active browser configuration
-            setTimeout(() => {
-              setActiveConfig({...draftConfig});
-              setIsForceDisconnected(false);
-            }, 500);
+            client.publish('kontrol/broker', payload, { qos: 1, retain: false }, (err) => {
+              if (err) {
+                addLog(`Gagal mengirim sinyal ke ESP32: ${err.message}`, 'error');
+              } else {
+                addLog(`Sinyal beralih "${payload}" terkirim ke ESP32`, 'success');
+              }
+              // Wait 300ms then transition active browser configuration
+              setTimeout(() => {
+                setActiveConfig({...draftConfig});
+                setIsForceDisconnected(false);
+              }, 300);
+            });
           } else {
             setActiveConfig({...draftConfig});
             setIsForceDisconnected(false);
@@ -596,14 +636,14 @@ export default function MqttApp() {
     if (isConnected || isConnecting) {
       if (client && isConnected) {
         addLog('Mengirim sinyal putuskan koneksi ke broker untuk ESP32...', 'info');
-        // Publish 'disconnect' with QoS 1 and Retain so any reconnecting ESP32 gets the message instantly
-        client.publish('kontrol/broker', 'disconnect', { qos: 1, retain: true });
-        
-        // Wait 500ms to allow publish flush before terminating socket
-        setTimeout(() => {
-          setIsForceDisconnected(true);
-          addLog('Koneksi browser diputus.', 'warn');
-        }, 500);
+        // Publish 'disconnect' with QoS 1
+        client.publish('kontrol/broker', 'disconnect', { qos: 1, retain: false }, () => {
+          // Wait 300ms to allow publish flush before terminating socket
+          setTimeout(() => {
+            setIsForceDisconnected(true);
+            addLog('Koneksi browser diputus.', 'warn');
+          }, 300);
+        });
       } else {
         setIsForceDisconnected(true);
         addLog('Koneksi diputus oleh pengguna', 'warn');
@@ -679,19 +719,19 @@ export default function MqttApp() {
   
               <div className="flex-1 sm:flex-none">
                 {isConnecting ? (
-                  <div className="flex items-center gap-2 text-yellow-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-full sm:w-[120px] justify-center">
+                  <div className="flex items-center gap-2 text-yellow-400 bg-white/10 px-4 h-10 rounded-lg text-xs sm:text-sm font-medium px-4 h-10 justify-center">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Wait...
+                    Sinkronisasi {activeConfig.name}...
                   </div>
                 ) : isConnected ? (
-                  <div className="flex items-center gap-2 text-emerald-400 bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-full sm:w-[120px] justify-center">
-                    <Wifi className="w-4 h-4" />
-                    Online
+                  <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 h-10 rounded-lg text-xs sm:text-sm font-black justify-center">
+                    <Wifi className="w-4 h-4 text-emerald-400" />
+                    Hubung: {activeConfig.name}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-[#F55E5E] bg-white/10 px-3 py-2 rounded-lg text-sm font-medium w-full sm:w-[120px] justify-center">
-                    <WifiOff className="w-4 h-4" />
-                    Offline
+                  <div className="flex items-center gap-2 text-rose-400 bg-rose-500/10 border border-rose-500/20 px-4 h-10 rounded-lg text-xs sm:text-sm font-bold justify-center">
+                    <WifiOff className="w-4 h-4 text-rose-400" />
+                    Putus: {activeConfig.name}
                   </div>
                 )}
               </div>
@@ -746,6 +786,8 @@ export default function MqttApp() {
               brokerSettingsNode={settingsPanel}
               variationSpeed={variationSpeed}
               onChangeVariationSpeed={handleVariationSpeedChange}
+              
+              // Removed sync telemetry props
             />
           </div>
   
