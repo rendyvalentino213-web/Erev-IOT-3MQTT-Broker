@@ -115,7 +115,7 @@ export default function SmartDashboard() {
 
   // --- FITUR CERDAS (VOICE COMMAND) ---
   const toggleVoiceCommand = () => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
       alert('Maaf, browser Anda (atau iFrame ini) tidak mendukung fitur Voice Command. Gunakan Chrome Desktop dan buka di tab baru.');

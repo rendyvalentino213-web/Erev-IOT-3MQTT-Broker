@@ -3,6 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { WebSocketServer, createWebSocketStream } from 'ws';
 import net from 'net';
+import tls from 'tls';
 
 async function startServer() {
   const app = express();
@@ -16,39 +17,63 @@ async function startServer() {
   // Setup WebSocket Server for MQTT Bridge
   const wss = new WebSocketServer({ server: httpServer, path: '/mqtt-proxy' });
 
-  wss.on('connection', (ws) => {
-    console.log('New WebSocket connection for MQTT proxy');
+  wss.on('connection', (ws, req) => {
+    const urlParams = new URL(req.url || '', 'ws://localhost').searchParams;
+    const targetHost = urlParams.get('host') || 'node02.myqtthub.com';
+    const targetPort = Number(urlParams.get('port')) || 1883;
+
+    console.log(`New WebSocket proxy connection to ${targetHost}:${targetPort}`);
     
-    // Connect to MyQttHub via TCP
-    const myqtthubTcpStream = net.connect({
-      port: 1883,
-      host: 'node02.myqtthub.com',
-    }, () => {
-      console.log('Connected to MyQttHub TCP');
-    });
+    // Dynamic protocol selector: Use TLS if destination port is a known secure/SSL port
+    const isTls = targetPort === 4883 || targetPort === 8883 || targetPort === 10443 || targetPort === 443 || targetPort === 8884;
+    console.log(`Initiating stream connection to ${targetHost}:${targetPort} [Protocol: ${isTls ? 'TLS/SSL Secure' : 'Insecure TCP'}]`);
+
+    let targetTcpStream: any;
+    try {
+      if (isTls) {
+        targetTcpStream = tls.connect({
+          port: targetPort,
+          host: targetHost,
+          rejectUnauthorized: false, // Bypass self-signed socket certificate constraints
+        }, () => {
+          console.log(`Connected to target secure TLS broker: ${targetHost}:${targetPort}`);
+        });
+      } else {
+        targetTcpStream = net.connect({
+          port: targetPort,
+          host: targetHost,
+        }, () => {
+          console.log(`Connected to target TCP broker: ${targetHost}:${targetPort}`);
+        });
+      }
+    } catch (e: any) {
+      console.error(`Failed to initiate bridge socket: ${e.message}`);
+      ws.close();
+      return;
+    }
 
     const wsStream = createWebSocketStream(ws);
 
     // Pipe the streams together
-    wsStream.pipe(myqtthubTcpStream).pipe(wsStream);
+    wsStream.pipe(targetTcpStream).pipe(wsStream);
 
-    myqtthubTcpStream.on('error', (err) => {
-      console.error('MyQttHub TCP Error:', err.message);
+    targetTcpStream.on('error', (err) => {
+      console.error(`TCP Proxy Error (${targetHost}:${targetPort}):`, err.message);
       ws.close();
     });
 
     ws.on('error', (err) => {
       console.error('WebSocket Error:', err.message);
-      myqtthubTcpStream.destroy();
+      targetTcpStream.destroy();
     });
 
     ws.on('close', () => {
       console.log('WebSocket closed');
-      myqtthubTcpStream.destroy();
+      targetTcpStream.destroy();
     });
 
-    myqtthubTcpStream.on('close', () => {
-      console.log('MyQttHub TCP closed');
+    targetTcpStream.on('close', () => {
+      console.log(`TCP closed for ${targetHost}:${targetPort}`);
       ws.close();
     });
   });
