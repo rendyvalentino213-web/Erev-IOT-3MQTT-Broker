@@ -150,9 +150,9 @@ export default function MqttApp() {
 
     // Explicitly seed protocol/host/port/path in options for browser bundle stability
     if (useProxy) {
-      options.protocol = wsProtocol as any;
-      options.host = window.location.hostname;
-      options.port = window.location.port ? Number(window.location.port) : (wsProtocol === 'wss' ? 443 : 80);
+      options.protocol = 'wss';
+      options.host = 'erev-iot-3mqtt-broker-production.up.railway.app';
+      options.port = 443;
       options.path = `/mqtt-proxy?host=${host}&port=${targetPort}`;
     } else {
       options.protocol = (protocol === 'wss' ? 'wss' : 'ws') as any;
