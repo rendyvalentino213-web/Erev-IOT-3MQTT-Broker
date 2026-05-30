@@ -21,13 +21,13 @@ const MYQTTHUB_CONFIG: BrokerConfig = {
   id: 'myqtthub',
   name: 'MyQttHub',
   host: 'node02.myqtthub.com',
-  port: 1883,
-  protocol: 'ws',
+  port: 8084,
+  protocol: 'wss',
   path: `/?clientId=webrendy1`,
   clientId: `webrendy1`,
   username: 'rendy13',
   password: '123',
-  connectionMode: 'proxy'
+  connectionMode: 'direct'
 };
 
 const CEDALO_CONFIG: BrokerConfig = {
@@ -47,13 +47,13 @@ const ABLY_CONFIG: BrokerConfig = {
   id: 'ably',
   name: 'Ably',
   host: 'mqtt.ably.io',
-  port: 1883,
-  protocol: 'ws',
-  path: '',
+  port: 443,
+  protocol: 'wss',
+  path: '/',
   clientId: `rendyweb_ably_${Math.random().toString(16).slice(2, 8)}`,
   username: 'saCuRw.TlY75w',
   password: 'EZffxoslAB9Xy81X0--ZKJ05Nk326crWVGKAaRGLfe8',
-  connectionMode: 'proxy'
+  connectionMode: 'direct'
 };
 
 export interface LogEntry {
@@ -499,8 +499,8 @@ export default function MqttApp() {
                 updated.path = draftConfig.id === 'myqtthub' ? `/?clientId=${draftConfig.clientId || 'webrendy1'}` : '';
               } else {
                 updated.protocol = 'wss';
-                updated.port = draftConfig.id === 'cedalo' ? 443 : (draftConfig.id === 'ably' ? 443 : 8883);
-                updated.path = draftConfig.id === 'cedalo' ? '/mqtt' : '';
+                updated.port = draftConfig.id === 'myqtthub' ? 8084 : 443;
+                updated.path = draftConfig.id === 'cedalo' ? '/mqtt' : (draftConfig.id === 'ably' ? '/' : `/?clientId=${draftConfig.clientId || 'webrendy1'}`);
               }
               setDraftConfig(updated);
             }}
